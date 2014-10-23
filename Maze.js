@@ -296,6 +296,13 @@ Maze.prototype.generate = function () {
   this.dispatchEvent('mazeChanged', {});
 };
 
+Maze.prototype.removeSoul = function (soul) {
+  if (this.souls) {
+    this.souls.splice(this.souls.indexOf(soul), 1);
+  }
+  console.log('It remains ' + this.souls.length + ' soul(s)');
+};
+
 function Cell(row, column, walls) {
   this.row = row;
   this.column = column;

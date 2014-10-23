@@ -65,6 +65,12 @@ PlayerControl.prototype.simulate = function (player, t, dt) {
   else if (player.isTurningRight) {
     player.rotation.y += Math.PI*dt/1000;
   }
+
+  player.checkNearSoul();
+  if (player.nearSoul) {
+    player.maze.removeSoul(player.nearSoul);
+    player.addSoul(player.nearSoul);
+  }
 };
 
 function Player(maze) {
@@ -142,4 +148,20 @@ Player.prototype.canGoBack = function () {
   return !intersections ||
          !intersections.length ||
          intersections[0].distance > this.RADIUS;
+};
+
+Player.prototype.checkNearSoul = function () {
+  this.nearSoul = null;
+  for (var i = 0, soul; (soul = this.maze.souls[i]); i++) {
+    if (soul.position.distanceTo(this.position) < this.RADIUS) {
+      this.nearSoul = soul;
+      return;
+    }
+  }
+};
+
+Player.prototype.addSoul = function (soul) {
+  this.recoveredSouls = this.recoveredSouls || [];
+  this.recoveredSouls.push(soul);
+  console.log('A soul was recovered');
 };
