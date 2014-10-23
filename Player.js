@@ -68,8 +68,7 @@ PlayerControl.prototype.simulate = function (player, t, dt) {
 
   player.checkNearSoul();
   if (player.nearSoul) {
-    player.maze.removeSoul(player.nearSoul);
-    player.addSoul(player.nearSoul);
+    player.recoverSoul(player.nearSoul);
   }
 };
 
@@ -153,15 +152,21 @@ Player.prototype.canGoBack = function () {
 Player.prototype.checkNearSoul = function () {
   this.nearSoul = null;
   for (var i = 0, soul; (soul = this.maze.souls[i]); i++) {
-    if (soul.position.distanceTo(this.position) < this.RADIUS) {
+    if (soul.hope === null &&
+        soul.position.distanceTo(this.position) < this.RADIUS) {
       this.nearSoul = soul;
       return;
     }
   }
 };
 
-Player.prototype.addSoul = function (soul) {
+Player.prototype.recoverSoul = function (soul) {
   this.recoveredSouls = this.recoveredSouls || [];
+  if (this.recoveredSouls.length > 0) {
+    soul.hope = this.recoveredSouls[this.recoveredSouls.length - 1];
+  }
+  else {
+    soul.hope = this;
+  }
   this.recoveredSouls.push(soul);
-  console.log('A soul was recovered');
 };
