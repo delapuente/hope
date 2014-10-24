@@ -5,18 +5,28 @@ function SoulRender(soul) {
   this.soulMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
   this.soulMesh =
     new THREE.Mesh(new THREE.SphereGeometry(this.soul.SIZE), this.soulMaterial);
+  soul.addEventListener('powerChanged', this.changeMaterial.bind(this));
 
   GfxSystem.scene.add(this.soulMesh);
 }
 theClass(SoulRender).inheritsFrom(Render);
 
+SoulRender.prototype.changeMaterial = function (evt) {
+  var range = 0xffffff - 0xffff00;
+  var value = Math.floor(evt.power * range) & 0xffffff;
+  this.soulMesh.material.color.setHex(value + 0xffff00);
+};
+
 function Soul() {
   Model.apply(this, arguments);
   this.hope = null;
+  this._power = 0;
 }
 theClass(Soul).inheritsFrom(Model);
 
 Soul.prototype.render = SoulRender;
+
+Soul.prototype.CHARGE_SPEED = 0.5;
 
 Soul.prototype.simulate = function (isPostStep, t, dt) {
   if (isPostStep) {
@@ -24,6 +34,22 @@ Soul.prototype.simulate = function (isPostStep, t, dt) {
     this.position.y = Math.sin(t/1000 + this._simulateDelay * 2);
     this.followHope(t, dt);
   }
+  if (this.hope && this.hope.isCasting) {
+    this.setPower(this.getPower() + this.CHARGE_SPEED * dt / 1000);
+  }
+  else {
+    this.setPower(this.getPower() - this.CHARGE_SPEED * dt / 1000);
+  }
+  this.isCasting = this.getPower() === 1;
+};
+
+Soul.prototype.setPower = function (power) {
+  this._power = Math.min(Math.max(power, 0), 1);
+  this.dispatchEvent('powerChanged', { power: this._power });
+};
+
+Soul.prototype.getPower = function (power) {
+  return this._power;
 };
 
 Soul.prototype.SPEED = 6.5;

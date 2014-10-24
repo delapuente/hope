@@ -10,6 +10,7 @@ function Hope() {
   GfxSystem.camera.position.y = 150;
 
   GfxSystem.camera.lookAt(mazeCenter);
+  Model.apply(this, arguments);
 }
 theClass(Hope).inheritsFrom(Model);
 

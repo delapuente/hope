@@ -32,6 +32,9 @@ PlayerControl.prototype.onkeydown = function (evt) {
   if (evt.which === 65) {
     this.player.turnRight(true);
   }
+  if (evt.which === 32) {
+    this.player.cast(true);
+  }
 };
 
 PlayerControl.prototype.onkeyup = function (evt) {
@@ -46,6 +49,12 @@ PlayerControl.prototype.onkeyup = function (evt) {
   }
   if (evt.which === 65) {
     this.player.turnRight(false);
+  }
+  if (evt.which === 32) {
+    this.player.cast(false);
+  }
+  if (evt.which === 81) {
+    this.player.blowUpMaze();
   }
 };
 
@@ -85,6 +94,21 @@ Player.prototype.render = PlayerRender;
 
 Player.prototype.simulate = PlayerControl;
 
+Player.prototype.blowUpMaze = function () {
+  if (this.recoveredSouls) {
+    var totalPower = this.recoveredSouls.reduce(function (power, soul) {
+      return power + soul.getPower();
+    }, 0);
+    var radius = Math.floor(Math.sqrt(totalPower / Math.PI));
+    if (radius > 0) {
+      console.log('Blowing radius: ' + radius);
+      var center =
+        this.maze.getMazeCoordinates(this.position.x, this.position.z);
+      this.maze.blowUp(center[0], center[1], radius);
+    }
+  }
+};
+
 Object.defineProperty(Player.prototype, 'position', {
   get: function () { return this.render.playerMesh.position; },
 });
@@ -121,6 +145,10 @@ Player.prototype.turnRight = function (enable) {
 Player.prototype.turnLeft = function (enable) {
   this.isTurningRight = false;
   this.isTurningLeft = enable;
+};
+
+Player.prototype.cast = function (enable) {
+  this.isCasting = enable;
 };
 
 Player.prototype.RADIUS = 3;

@@ -141,6 +141,12 @@ Maze.prototype.getCell = function (c, r) {
   return cell || null;
 };
 
+Maze.prototype.getMazeCoordinates = function (x, z) {
+  var c = Math.floor(x / this.CELL_SIZE);
+  var r = Math.floor(z / this.CELL_SIZE);
+  return [c, r];
+};
+
 Maze.prototype.getCellCenter = function (c, r) {
   var x = this.CELL_SIZE * c + this.CELL_SEMI_SIZE;
   var y = 1;
