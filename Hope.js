@@ -19,7 +19,10 @@ function Hope() {
 theClass(Hope).inheritsFrom(Model);
 
 Hope.prototype.onmazeblow = function (evt) {
-  if (evt.removed.length > 0) {
+  var wallCount = evt.removed.length;
+  if (evt.removed.length && this.storyFragments.length) {
+    var random = Math.floor(Math.random() * wallCount);
+    evt.removed[random].tellAStory(this.storyFragments.shift());
   }
 };
 

@@ -12,6 +12,7 @@ function MazeRender(maze) {
     new THREE.Matrix4().makeTranslation(this.maze.CELL_SEMI_SIZE, 4, 0.5)
   );
   this.wallMaterial = new THREE.MeshNormalMaterial();
+  this.storyWallMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 
   this.maze.addEventListener('mazeChanged', this.repaint.bind(this));
 }
@@ -25,6 +26,22 @@ MazeRender.prototype.repaint = function (evt) {
     W: this.verticalGeometry
   };
 
+  var wallMaterials = [
+    this.wallMaterial,
+    this.wallMaterial,
+    this.wallMaterial,
+    this.wallMaterial,
+    this.wallMaterial,
+    this.wallMaterial,
+    this.storyWallMaterial,
+    this.storyWallMaterial,
+    this.storyWallMaterial,
+    this.storyWallMaterial,
+    this.storyWallMaterial,
+    this.storyWallMaterial
+  ];
+  var mazeMaterial = new THREE.MeshFaceMaterial(wallMaterials);
+
   GfxSystem.scene.remove(this.completeMaze);
   var mergedWalls = new THREE.Geometry();
   for (var c = 0; c < this.maze.columns; c++) {
@@ -34,7 +51,8 @@ MazeRender.prototype.repaint = function (evt) {
       if (c === this.maze.columns - 1) { directions.push('E'); }
       if (r === this.maze.rows - 1) { directions.push('S'); }
       directions.forEach(function (d) {
-        if (!cell.walls[d].isOpen) {
+        var wall = cell.walls[d];
+        if (!wall.isOpen) {
           var mesh =
             new THREE.Mesh(geometriesByDirection[d], this.wallMaterial);
           var oppositeOffsetCol = (d === 'E') ? 1 : 0;
@@ -45,14 +63,16 @@ MazeRender.prototype.repaint = function (evt) {
             (this.maze.CELL_SIZE * (r + oppositeOffsetRow));
           mesh.matrixAutoUpdate = false;
           mesh.updateMatrix();
-          mergedWalls.merge(mesh.geometry, mesh.matrix);
+          mergedWalls
+            .merge(mesh.geometry, mesh.matrix, wall.isStoryTeller() ? 5 : 0);
         }
       }, this);
     }
   }
 
   mergedWalls.computeFaceNormals();
-  this.completeMaze = new THREE.Mesh(mergedWalls, this.wallMaterial);
+  wallMaterials[2] = this.wallMaterial;
+  this.completeMaze = new THREE.Mesh(mergedWalls, mazeMaterial);
   GfxSystem.scene.add(this.completeMaze);
   //this.floorGeometry = new THREE.BoxGeometry(width, 1, height);
   //this.floorMaterial = new THREE.MeshBasicMaterial({ color: 0x00FF00 });
@@ -336,6 +356,16 @@ function Wall() {
   this.isOpen = false;
   this.isBound = false;
 }
+
+Wall.prototype.tellAStory = function (story) {
+  this.story = story;
+  this.isOpen = false;
+  Object.freeze(this);
+};
+
+Wall.prototype.isStoryTeller = function () {
+  return !!this.story;
+};
 
 Wall.makeBound = function (wall) {
   var bound = wall || new Wall();
