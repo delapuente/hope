@@ -123,16 +123,34 @@ Maze.prototype.blowUp = function (column, row, radius) {
   var t = row - radius;
   var diameter = radius * 2;
   var center = column + row;
+  var removedWalls = [];
   for (var c = l; c <= diameter + column; c++) {
     for (var r = t; r <= diameter + row; r++) {
       if (c < 0 || c >= this.columns || r < 0 || r >= this.rows) { continue; }
       var inRadius = (Math.abs(column - c) + Math.abs(row - r)) <= radius;
       if (inRadius) {
+        var cell = this.graph[c][r];
+        var walls = Object.keys(cell.walls).map(getWall.bind(this, cell));
+        var closedWalls = walls.filter(isClosed);
         this.freeCell(this.graph[c][r]);
+        removedWalls = removedWalls.concat(closedWalls.filter(isOpen));
       }
     }
   }
-  this.dispatchEvent('mazeChanged', {});
+  this.dispatchEvent('mazeBlownUp', { removed: removedWalls });
+  this.dispatchEvent('mazeChanged');
+
+  function getWall(cell, d) {
+    return cell.walls[d];
+  }
+
+  function isClosed(wall) {
+    return !wall.isOpen;
+  }
+
+  function isOpen(wall) {
+    return wall.isOpen;
+  }
 };
 
 Maze.prototype.getCell = function (c, r) {
