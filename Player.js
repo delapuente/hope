@@ -95,17 +95,51 @@ Player.prototype.render = PlayerRender;
 Player.prototype.simulate = PlayerControl;
 
 Player.prototype.blowUpMaze = function () {
-  if (this.recoveredSouls) {
-    var totalPower = this.recoveredSouls.reduce(function (power, soul) {
-      return power + soul.getPower();
-    }, 0);
+  if (this.recoveredSouls && this.recoveredSouls.length > 0) {
+    var totalPower = this.gatherSoulPower();
     var radius = Math.floor(Math.sqrt(totalPower / Math.PI));
     if (radius > 0) {
       console.log('Blowing radius: ' + radius);
       var center =
         this.maze.getMazeCoordinates(this.position.x, this.position.z);
       this.maze.blowUp(center[0], center[1], radius);
+      this.exhaustSouls();
+      this.rebuildHope();
     }
+  }
+};
+
+Player.prototype.gatherSoulPower = function () {
+  var totalPower = 0;
+  if (this.recoveredSouls) {
+    totalPower = this.recoveredSouls.reduce(function (total, soul) {
+      return total + soul.getPower();
+    }, totalPower);
+  }
+  return totalPower;
+};
+
+Player.prototype.exhaustSouls = function () {
+  var soul, savedSouls = [];
+  while (this.recoveredSouls.length) {
+    soul = this.recoveredSouls.shift();
+    if (soul.getPower() > 0) {
+      soul.destroy();
+    }
+    else {
+      savedSouls.push(soul);
+    }
+  }
+  this.recoveredSouls = savedSouls;
+};
+
+Player.prototype.rebuildHope = function () {
+  var l = this.recoveredSouls.length;
+  if (l > 0) {
+    this.recoveredSouls[0].hope = this;
+  }
+  for (var i = 1; i < l; i++) {
+    this.recoveredSouls[i].hope = this.recoveredSouls[i-1];
   }
 };
 

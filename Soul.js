@@ -6,6 +6,7 @@ function SoulRender(soul) {
   this.soulMesh =
     new THREE.Mesh(new THREE.SphereGeometry(this.soul.SIZE), this.soulMaterial);
   soul.addEventListener('powerChanged', this.changeMaterial.bind(this));
+  soul.addEventListener('destroyed', this.removeMesh.bind(this));
 
   GfxSystem.scene.add(this.soulMesh);
 }
@@ -15,6 +16,10 @@ SoulRender.prototype.changeMaterial = function (evt) {
   var range = 0xffffff - 0xffff00;
   var value = Math.floor(evt.power * range) & 0xffffff;
   this.soulMesh.material.color.setHex(value + 0xffff00);
+};
+
+SoulRender.prototype.removeMesh = function (evt) {
+  GfxSystem.scene.remove(this.soulMesh);
 };
 
 function Soul() {
@@ -60,6 +65,10 @@ Soul.prototype.followHope = function (t, dt) {
     this.lookAt(target);
     this.translateZ(this.SPEED*dt/1000);
   }
+};
+
+Soul.prototype.destroy = function () {
+  this.dispatchEvent('destroyed');
 };
 
 Object.defineProperty(Soul.prototype, 'lookAt', { get: function () {

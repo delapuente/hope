@@ -107,10 +107,15 @@ Maze.prototype.fillWithSouls = function () {
         soul.position.x = c * this.CELL_SIZE + this.CELL_SEMI_SIZE;
         soul.position.y = 1;
         soul.position.z = r * this.CELL_SIZE + this.CELL_SEMI_SIZE;
+        soul.addEventListener('destroyed', this.removeSoul.bind(this));
         this.souls.push(soul);
       }
     }
   }
+};
+
+Maze.prototype.removeSoul = function (evt) {
+  this.souls.splice(this.souls.indexOf(evt.target), 1);
 };
 
 Maze.prototype.blowUp = function (column, row, radius) {
